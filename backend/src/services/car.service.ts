@@ -1,9 +1,17 @@
 import prisma from "../config/prisma";
 
 export const createCar = async (data: any, userId: string) => {
+  const safeData = {
+    title: data.title,
+    brand: data.brand,
+    price: Number(data.price),
+    year: Number(data.year),
+    imageUrl: data.imageUrl || null,
+  };
+
   return await prisma.car.create({
     data: {
-      ...data,
+      ...safeData,
       userId,
     },
   });

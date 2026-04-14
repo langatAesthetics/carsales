@@ -15,7 +15,7 @@ export default function Login() {
       });
 
       localStorage.setItem("token", res.data.token);
-      navigate("/dashboard");
+      navigate("/admin/dashboard");
     } catch (err: any) {
       console.log("FULL ERROR: ", err);
       console.log("RESPONSE:", err.response);
