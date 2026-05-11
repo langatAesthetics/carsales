@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -19,19 +19,58 @@ model User {
 }
 
 model Car {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  price       Float
-  brand       String?
-  model       String?
-  year        Int?
-  mileage     Int?
-  imageUrl    String?
+  id            String   @id @default(cuid())
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  title         String
+  brand         String
+  model         String?
+  year          Int?
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  price         Float
+
+  mileage       Int?
+  fuelType      FuelType?
+  transmission  Transmission?
+  engineSize    Int?
+  driveType     DriveType?
+
+  condition     Condition?
+  status        Status      @default(AVAILABLE)
+
+  description   String?
+  imageUrl      String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  userId        String
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  HYBRID
+  ELECTRIC
+}
+
+enum Transmission {
+  AUTOMATIC
+  MANUAL
+}
+
+enum DriveType {
+  AWD
+  FWD
+  RWD
+}
+
+enum Condition {
+  NEW
+  USED
+}
+
+enum Status {
+  AVAILABLE
+  SOLD
 }

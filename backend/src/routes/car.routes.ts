@@ -1,25 +1,29 @@
 import { Router } from "express";
-import { createCarController,} from "../controllers/car.controller";
+
+import {
+  createCarController,
+  getCarsController,
+  updateCarController,
+  deleteCarController,
+} from "../controllers/car.controller";
+
 import { authMiddleware } from "../middlewares/auth.middleware";
-import { PrismaClient } from "@prisma/client";
+import { upload } from "../middlewares/upload.middleware";
 
 const router = Router();
-const prisma = new PrismaClient();
-
-router.get("/", async (req, res) => {
-  try { 
-    const cars = await prisma.car.findMany({
-        orderBy: {
-            createdAt: "desc",
-        },
-    });
-    res.json(cars);
-  }catch (error) {
-    res.status(500).json({ message: "Error fetching cars"
-    });
-  }
-});
-
-router.post("/", authMiddleware, createCarController);
+router.get("/", getCarsController);
+router.post(
+  "/",
+  authMiddleware,
+  upload.single("image"),
+  createCarController
+);
+router.put(
+  "/:id",
+  authMiddleware,
+  upload.single("image"),
+  updateCarController
+);
+router.delete("/:id", authMiddleware, deleteCarController);
 
 export default router;

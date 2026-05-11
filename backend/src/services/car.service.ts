@@ -1,53 +1,75 @@
 import prisma from "../config/prisma";
+import { FuelType, Transmission, DriveType, Condition, Status, } from "@prisma/client";
 
 export const createCar = async (data: any, userId: string) => {
-  const safeData = {
-    title: data.title,
-    brand: data.brand,
-    price: Number(data.price),
-    year: Number(data.year),
-    imageUrl: data.imageUrl || null,
-  };
-
   return await prisma.car.create({
     data: {
-      ...safeData,
+      title: data.title,
+      brand: data.brand,
+      model: data.model || null,
+      year: data.year ? Number(data.year) : null,
+
+      price: Number(data.price),
+
+      mileage: data.mileage ? Number(data.mileage) : null,
+      engineSize: data.engineSize
+        ? Number(data.engineSize)
+        : null,
+
+      fuelType: data.fuelType as FuelType,
+      transmission: data.transmission as Transmission,
+      driveType: data.driveType as DriveType,
+
+      condition: data.condition as Condition,
+      status: data.status as Status,
+
+      description: data.description || null,
+      imageUrl: data.imageUrl || null,
+
       userId,
     },
   });
 };
 
-export const getCars = async (filters: any) => {
-  const { brand, year, minPrice, maxPrice, page, limit } = filters;
-
-  const where: any = {};
-
-  if (brand) where.brand = brand;
-  if (year) where.year = year;
-  if (minPrice || maxPrice) {
-    where.price = {};
-    if (minPrice) where.price.gte = minPrice;
-    if (maxPrice) where.price.lte = maxPrice;
-  }
-
-  const skip = (page - 1) * limit;
-
-  const [cars, total] = await Promise.all([
-    prisma.car.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.car.count({ where }),
-  ]);
-
-  return {
-    data: cars,
-    meta: {
-      total,
-      page,
-      limit,
+export const getCars = async () => {
+  return await prisma.car.findMany({
+    orderBy: {
+      createdAt: "desc",
     },
-  };
+  });
+};
+
+export const updateCar = async (id: string, data: any) => {
+  return await prisma.car.update({
+    where: { id },
+    data: {
+      title: data.title,
+      brand: data.brand,
+      model: data.model || null,
+      year: data.year ? Number(data.year) : null,
+
+      price: Number(data.price),
+
+      mileage: data.mileage ? Number(data.mileage) : null,
+      engineSize: data.engineSize
+        ? Number(data.engineSize)
+        : null,
+
+      fuelType: data.fuelType as FuelType,
+      transmission: data.transmission as Transmission,
+      driveType: data.driveType as DriveType,
+
+      condition: data.condition as Condition,
+      status: data.status as Status,
+
+      description: data.description || null,
+      imageUrl: data.imageUrl || null,
+    },
+  });
+};
+
+export const deleteCar = async (id: string) => {
+  return await prisma.car.delete({
+    where: { id },
+  });
 };
