@@ -1,11 +1,18 @@
-import { Request, Response, NextFunction } from "express";
+import {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
 
 import {
   createCar,
   getCars,
+  getSingleCar,
   updateCar,
   deleteCar,
 } from "../services/car.service";
+
+/* ================= CREATE ================= */
 
 export const createCarController = async (
   req: any,
@@ -29,6 +36,8 @@ export const createCarController = async (
   }
 };
 
+/* ================= GET ALL ================= */
+
 export const getCarsController = async (
   req: Request,
   res: Response,
@@ -43,24 +52,56 @@ export const getCarsController = async (
   }
 };
 
+/* ================= GET SINGLE ================= */
+
+export const getSingleCarController =
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const car = await getSingleCar(
+        req.params.id
+      );
+
+      if (!car) {
+        return res.status(404).json({
+          message: "Car not found",
+        });
+      }
+
+      res.status(200).json(car);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+/* ================= UPDATE ================= */
+
 export const updateCarController = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const imageUrl = req.file?.path;
 
-    const car = await updateCar(req.params.id, {
-      ...req.body,
-      ...(imageUrl && { imageUrl }),
-    });
+    const car = await updateCar(
+      req.params.id,
+      {
+        ...req.body,
+        ...(imageUrl && { imageUrl }),
+      }
+    );
 
     res.status(200).json(car);
   } catch (error) {
     next(error);
   }
 };
+
+/* ================= DELETE ================= */
 
 export const deleteCarController = async (
   req: Request,
@@ -71,7 +112,8 @@ export const deleteCarController = async (
     await deleteCar(req.params.id);
 
     res.status(200).json({
-      message: "Car deleted successfully",
+      message:
+        "Car deleted successfully",
     });
   } catch (error) {
     next(error);
