@@ -62,7 +62,7 @@ export const getSingleCarController =
   ) => {
     try {
       const car = await getSingleCar(
-        req.params.id
+        String(req.params.id)
       );
 
       if (!car) {
@@ -109,7 +109,9 @@ export const deleteCarController = async (
   next: NextFunction
 ) => {
   try {
-    await deleteCar(req.params.id);
+    await deleteCar(
+      String(req.params.id)
+    );
 
     res.status(200).json({
       message:
