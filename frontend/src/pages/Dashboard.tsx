@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import { api } from "../services/api";
+import { api } from "../../services/api";
 import toast from "react-hot-toast";
 
 export default function Dashboard() {
