@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../services/api";
 import { Link, useSearchParams } from "react-router-dom";
+import SEO from "../seo/SEO";
 
 interface Car {
     id: string;
@@ -300,6 +301,13 @@ export default function Vehicles() {
 
     return (
         <section className="max-w-7xl mx-auto px-6 py-24">
+
+            {/* ================= SEO ================= */}
+            <SEO
+                title="Cars for Sale in Kenya | Carsales"
+                description="Browse quality cars for sale in Kenya. Search and filter vehicles by brand, model, price, year, fuel type and transmission on Carsales."
+                canonical="/vehicles"
+            />
 
             {/* ================= HERO ================= */}
 

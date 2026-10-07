@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { api } from "../../services/api";
 import toast from "react-hot-toast";
+import SEO from "../seo/SEO";
 
 export default function Dashboard() {
   const [cars, setCars] = useState<any[]>([]);
@@ -181,6 +182,13 @@ export default function Dashboard() {
 
   return (
     <Layout>
+
+      <SEO
+        title="Admin Dashboard | Carsales"
+        description="Carsales administration dashboard."
+        canonical="/admin/dashboard"
+        noIndex
+      />
       {/* FORM */}
       <div className="bg-white rounded-2xl shadow p-6 mb-6">
         <h2 className="text-2xl font-semibold mb-6">

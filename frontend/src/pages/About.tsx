@@ -1,6 +1,16 @@
+import SEO from "../seo/SEO";
+
 export default function About() {
     return (
         <section className="max-w-7xl mx-auto px-6 py-24">
+
+            {/* SEO */}
+
+            <SEO
+                title="About Carsales | Vehicle Marketplace in Kenya"
+                description="Learn more about Carsales, a vehicle marketplace helping buyers discover quality cars for sale in Kenya."
+                canonical="/about"
+            />
 
             {/* Heading */}
             <div className="max-w-3xl">

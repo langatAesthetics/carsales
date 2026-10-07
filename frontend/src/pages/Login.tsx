@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import SEO from "../seo/SEO";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -25,6 +26,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <SEO
+        title="Admin Login | Carsales"
+        description="Carsales administration login."
+        canonical="/admin"
+        noIndex
+      />
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
 
         {/* Title */}

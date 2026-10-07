@@ -1,6 +1,14 @@
+import SEO from "../seo/SEO";
+
 export default function Contact() {
     return (
         <section className="max-w-7xl mx-auto px-6 py-24">
+            {/* SEO */}
+            <SEO
+                title="Contact Carsales | Get in Touch"
+                description="Contact Carsales for vehicle enquiries, dealership information, vehicle listings and other questions."
+                canonical="/contact"
+            />
 
             {/* Heading */}
             <div className="text-center max-w-3xl mx-auto">

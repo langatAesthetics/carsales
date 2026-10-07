@@ -9,6 +9,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../services/api";
 import carsHero from "../assets/hero_illustration.png";
+import SEO from "../seo/SEO";
 
 interface Car {
     id: string;
@@ -231,6 +232,13 @@ export default function Home() {
 
     return (
         <main className="min-h-screen bg-white text-gray-900">
+
+            {/* ================= SEO ================= */}
+            <SEO
+                title="Carsales Kenya | Quality Cars for Sale"
+                description="Discover quality cars for sale in Kenya. Browse vehicles by brand, model, price and specifications on Carsales."
+                canonical="/"
+            />
 
             {/* ================= HERO ================= */}
 
