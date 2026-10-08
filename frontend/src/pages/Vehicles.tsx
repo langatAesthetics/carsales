@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../../services/api";
 import { Link, useSearchParams } from "react-router-dom";
 import SEO from "../seo/SEO";
+import { Cog, Fuel, Gauge, Settings2 } from "lucide-react";
 
 interface Car {
     id: string;
@@ -300,7 +301,7 @@ export default function Vehicles() {
     };
 
     return (
-        <section className="max-w-7xl mx-auto px-6 py-24">
+        <section className="max-w-7xl mx-auto px-6 py-12">
 
             {/* ================= SEO ================= */}
             <SEO
@@ -308,25 +309,9 @@ export default function Vehicles() {
                 description="Browse quality cars for sale in Kenya. Search and filter vehicles by brand, model, price, year, fuel type and transmission on Carsales."
                 canonical="/vehicles"
             />
-
-            {/* ================= HERO ================= */}
-
-            <div className="text-center max-w-4xl mx-auto">
-
-                <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-                    Explore Premium Vehicles
-                </h1>
-
-                <p className="mt-8 text-lg text-gray-600 leading-relaxed">
-                    Browse our carefully selected collection of premium vehicles
-                    built for performance, comfort, and reliability.
-                </p>
-
-            </div>
-
             {/* ================= FILTERS ================= */}
 
-            <div className="bg-white shadow-lg rounded-3xl p-6 mt-16">
+            <div className="bg-white shadow-lg rounded-3xl p-6">
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
@@ -551,7 +536,7 @@ export default function Vehicles() {
 
             {/* ================= VEHICLES GRID ================= */}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
 
                 {loading ? (
 
@@ -581,14 +566,15 @@ export default function Vehicles() {
 
                     filteredCars.map((car) => (
 
-                        <div
+                        <Link
                             key={car.id}
-                            className="bg-white rounded-[20px] overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition duration-300 flex flex-col"
+                            to={`/vehicles/${car.id}`}
+                            className="bg-white rounded-[20px] overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg  flex flex-col cursor-pointer group"
                         >
 
                             {/* ================= IMAGE ================= */}
 
-                            <div className="relative overflow-hidden">
+                            <div className="bg-gray-200 h-48 relative overflow-hidden">
 
                                 <img
                                     src={
@@ -596,83 +582,104 @@ export default function Vehicles() {
                                         "https://via.placeholder.com/600x400"
                                     }
                                     alt={car.title}
-                                    className="w-full h-[320px] object-cover hover:scale-105 transition duration-500"
+                                    className="w-full h-full object-cover "
                                 />
 
                                 <div className="absolute top-4 right-4 bg-green-100 text-green-700 text-sm font-semibold px-4 py-2 rounded-full">
-                                    {car.status === "AVAILABLE"
-                                        ? "Available"
-                                        : car.status || "Available"}
+                                    {car.status === "AVAILABLE" ? "Available" : car.status || "Available"}
                                 </div>
 
                             </div>
 
                             {/* ================= CONTENT ================= */}
 
-                            <div className="p-5 flex flex-col flex-1">
+                            <div className="p-5 flex flex-col">
 
-                                {/* SPECS */}
+                                {/* VEHICLE NAME */}
 
-                                <div className="grid grid-cols-3 gap-3 text-gray-500 text-sm leading-relaxed">
-
-                                    <div>
-                                        <p>
-                                            {car.year || "-"}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p>
-                                            {car.transmission || "-"}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p>
-                                            {car.engineSize
-                                                ? `${car.engineSize} cc`
-                                                : "-"}
-                                        </p>
-                                    </div>
-
-                                </div>
-
-                                {/* TITLE */}
-
-                                <h2 className="text-[32px] font-bold mt-4 leading-tight">
+                                <h2 className="text-xl font-bold leading-tight">
                                     {car.title}
                                 </h2>
 
-                                {/* DESCRIPTION */}
-
-                                <p className="text-gray-500 mt-4 leading-relaxed line-clamp-3">
-                                    {car.description ||
-                                        "Premium vehicle with excellent performance, comfort, and reliability."}
-                                </p>
-
                                 {/* PRICE */}
 
-                                <div className="mt-auto pt-8">
+                                <p className="text-2xl font-bold text-green-600 mt-3">
+                                    Ksh {car.price.toLocaleString()}
+                                </p>
 
-                                    <h3 className="text-4xl font-bold text-green-600">
-                                        Ksh{" "}
-                                        {car.price.toLocaleString()}
-                                    </h3>
+                                {/* ================= SPECS ================= */}
+
+                                <div className="grid grid-cols-2 gap-4 mt-6">
+
+                                    {/* MILEAGE */}
+
+                                    <div className="flex items-center gap-2 text-gray-600">
+
+                                        <Gauge
+                                            size={18}
+                                            className="text-gray-400 shrink-0"
+                                        />
+
+                                        <span className="text-sm">
+                                            {car.mileage
+                                                ? `${car.mileage.toLocaleString()} km`
+                                                : "-"}
+                                        </span>
+
+                                    </div>
+
+                                    {/* ENGINE */}
+
+                                    <div className="flex items-center gap-2 text-gray-600">
+
+                                        <Cog
+                                            size={18}
+                                            className="text-gray-400 shrink-0"
+                                        />
+
+                                        <span className="text-sm">
+                                            {car.engineSize
+                                                ? `${car.engineSize} cc`
+                                                : "-"}
+                                        </span>
+
+                                    </div>
+
+                                    {/* TRANSMISSION */}
+
+                                    <div className="flex items-center gap-2 text-gray-600">
+
+                                        <Settings2
+                                            size={18}
+                                            className="text-gray-400 shrink-0"
+                                        />
+
+                                        <span className="text-sm">
+                                            {car.transmission || "-"}
+                                        </span>
+
+                                    </div>
+
+                                    {/* FUEL */}
+
+                                    <div className="flex items-center gap-2 text-gray-600">
+
+                                        <Fuel
+                                            size={18}
+                                            className="text-gray-400 shrink-0"
+                                        />
+
+                                        <span className="text-sm">
+                                            {car.fuelType || "-"}
+                                        </span>
+
+                                    </div>
 
                                 </div>
 
-                                {/* BUTTON */}
-
-                                <Link
-                                    to={`/vehicles/${car.id}`}
-                                    className="mt-6 w-full bg-black hover:bg-green-600 text-white py-4 rounded-2xl text-center font-semibold transition"
-                                >
-                                    View Details
-                                </Link>
-
                             </div>
 
-                        </div>
+                        </Link>
 
                     ))
                 )}

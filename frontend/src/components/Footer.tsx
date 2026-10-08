@@ -40,16 +40,6 @@ export default function Footer() {
                                     Vehicles
                                 </Link>
                             </li>
-
-                            <li>
-                                <Link
-                                    to="/bikes"
-                                    className="hover:text-white transition"
-                                >
-                                    Bikes
-                                </Link>
-                            </li>
-
                             <li>
                                 <Link
                                     to="/about"

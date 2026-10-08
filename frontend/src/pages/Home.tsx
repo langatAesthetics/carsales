@@ -242,19 +242,9 @@ export default function Home() {
 
             {/* ================= HERO ================= */}
 
-            <section className="w-full min-h-screen flex items-center justify-center px-6">
+            <section className="w-full min-h-[75vh] flex items-center justify-center px-6">
 
                 <div className="max-w-7xl mx-auto grid items-center">
-
-                    {/* Image */}
-
-                    <div>
-                        <img
-                            src={carsHero}
-                            alt="Cars"
-                            className="w-full md:h-[400px] object-contain"
-                        />
-                    </div>
 
                     {/* Content */}
 
@@ -270,13 +260,23 @@ export default function Home() {
 
                     </div>
 
+                    {/* Image */}
+
+                    <div>
+                        <img
+                            src={carsHero}
+                            alt="Cars"
+                            className="w-full md:h-100 object-contain"
+                        />
+                    </div>
+
                 </div>
 
             </section>
 
             {/* ================= FILTER SECTION ================= */}
 
-            <section className="max-w-7xl mx-auto px-6 py-12">
+            <section className="max-w-7xl mx-auto ">
 
                 <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8">
 
@@ -484,7 +484,7 @@ export default function Home() {
                             onClick={browseFilteredVehicles}
                             className="bg-black hover:bg-red-600 text-white px-8 py-3 rounded-xl font-semibold transition"
                         >
-                            Browse All Vehicles
+                            Browse Vehicles
                         </button>
 
                     </div>
