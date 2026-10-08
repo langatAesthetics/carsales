@@ -5,7 +5,6 @@ import {
     Fuel,
     Cog,
     Settings2,
-    CarFront,
     CalendarDays,
     Route,
     ChevronLeft,
