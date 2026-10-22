@@ -20,15 +20,38 @@ interface Car {
     description?: string;
 }
 
+interface Pagination {
+    page: number;
+    limit: number;
+    totalItems: number;
+    totalPages: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+}
+
+
 export default function Vehicles() {
     // ================= URL PARAMETERS =================
 
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // ================= VEHICLES =================
+    // ================= VEHICLES AND PAGINATION =================
 
     const [cars, setCars] = useState<Car[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const [pagination, setPagination] = useState<Pagination>({
+        page: 1,
+        limit: 12,
+        totalItems: 0,
+        totalPages: 1,
+        hasPreviousPage: false,
+        hasNextPage: false,
+    });
+
+    const [currentPage, setCurrentPage] = useState(
+        Math.max(1, Number(searchParams.get("page")) || 1)
+    );
 
     // ================= FILTER STATES =================
 
@@ -48,84 +71,120 @@ export default function Vehicles() {
         searchParams.get("price") || ""
     );
 
-    // ================= FETCH VEHICLES =================
+    // ================= FETCH PAGINATED VEHICLES =================
 
-    const fetchCars = async () => {
-        try {
-            const res = await api.get("/cars");
-
-            setCars(res.data || []);
-        } catch (error) {
-            console.error("Failed to fetch vehicles", error);
-            setCars([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const queryString = searchParams.toString();
 
     useEffect(() => {
-        fetchCars();
-    }, []);
+        let cancelled = false;
 
-    // ================= BRANDS =================
+        const fetchCars = async () => {
+            setLoading(true);
 
-    const brands = useMemo(() => {
-        return Array.from(
-            new Set(
-                cars
-                    .map((car) => car.brand)
-                    .filter(Boolean)
-            )
-        ).sort();
-    }, [cars]);
+            try {
+                const params = new URLSearchParams(queryString);
 
-    // ================= MODELS =================
+                const requestedPage = Math.max(
+                    1,
+                    Number(params.get("page")) || 1
+                );
 
-    const models = useMemo(() => {
-        return Array.from(
-            new Set(
-                cars
-                    .filter(
-                        (car) =>
-                            !selectedBrand ||
-                            car.brand === selectedBrand
+                params.set("page", String(requestedPage));
+                params.set("limit", "12");
+
+                const res = await api.get("/cars", {
+                    params: Object.fromEntries(params.entries()),
+                });
+
+                const response = res.data;
+
+                if (cancelled) return;
+
+                const vehicleList = Array.isArray(response)
+                    ? response
+                    : Array.isArray(response?.data)
+                        ? response.data
+                        : [];
+
+                setCars(vehicleList);
+
+                setPagination({
+                    page: Number(response?.pagination?.page) || requestedPage,
+                    limit: Number(response?.pagination?.limit) || 12,
+                    totalItems: Number(response?.pagination?.totalItems) || 0,
+                    totalPages: Math.max(
+                        1,
+                        Number(response?.pagination?.totalPages) || 1
+                    ),
+                    hasPreviousPage: Boolean(
+                        response?.pagination?.hasPreviousPage
+                    ),
+                    hasNextPage: Boolean(
+                        response?.pagination?.hasNextPage
+                    ),
+                });
+
+                setCurrentPage(
+                    Math.max(
+                        1,
+                        Number(response?.pagination?.page) || requestedPage
                     )
-                    .map((car) => car.model)
-                    .filter(Boolean) as string[]
-            )
-        ).sort();
-    }, [cars, selectedBrand]);
+                );
+
+            } catch (error) {
+                if (!cancelled) {
+                    console.error("Failed to fetch vehicles", error);
+
+                    setCars([]);
+                    setPagination({
+                        page: 1,
+                        limit: 12,
+                        totalItems: 0,
+                        totalPages: 1,
+                        hasPreviousPage: false,
+                        hasNextPage: false,
+                    });
+
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        const timer = window.setTimeout(fetchCars, 250);
+
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timer);
+        };
+    }, [queryString]);
 
     // ================= UPDATE URL =================
 
-    const updateURL = (
-        searchValue: string,
-        brandValue: string,
-        modelValue: string,
-        priceValue: string
-    ) => {
-        const params = new URLSearchParams();
+   const updateURL = (
+    searchValue: string,
+    brandValue: string,
+    modelValue: string,
+    priceValue: string,
+    pageValue = 1
+) => {
+    const params = new URLSearchParams();
 
-        if (brandValue) {
-            params.set("brand", brandValue);
-        }
+    if (brandValue) params.set("brand", brandValue);
+    if (modelValue) params.set("model", modelValue);
+    if (priceValue) params.set("price", priceValue);
+    if (searchValue.trim()) {
+        params.set("search", searchValue.trim());
+    }
 
-        if (modelValue) {
-            params.set("model", modelValue);
-        }
+    if (pageValue > 1) {
+        params.set("page", String(pageValue));
+    }
 
-        if (priceValue) {
-            params.set("price", priceValue);
-        }
-
-        if (searchValue.trim()) {
-            params.set("search", searchValue.trim());
-        }
-
-        setSearchParams(params, {
-            replace: true,
-        });
-    };
+    setSearchParams(params, { replace: true });
+};
 
     // ================= SEARCH CHANGE =================
 
@@ -191,91 +250,61 @@ export default function Vehicles() {
     };
 
     // ================= FILTER VEHICLES =================
-
     const filteredCars = useMemo(() => {
-        const searchTerm = search.trim().toLowerCase();
-
         return cars.filter((car) => {
-
-            // ================= SEARCH =================
-
-            const searchableText = `
-                ${car.title}
-                ${car.brand}
-                ${car.model || ""}
-                ${car.year || ""}
-                ${car.fuelType || ""}
-                ${car.transmission || ""}
-                ${car.description || ""}
-            `.toLowerCase();
-
             const matchesSearch =
-                searchTerm === "" ||
-                searchableText.includes(searchTerm);
-
-            // ================= BRAND =================
+                !search.trim() ||
+                `${car.title} ${car.brand} ${car.model ?? ""}`
+                    .toLowerCase()
+                    .includes(search.trim().toLowerCase());
 
             const matchesBrand =
-                selectedBrand === "" ||
-                car.brand === selectedBrand;
-
-            // ================= MODEL =================
+                !selectedBrand || car.brand === selectedBrand;
 
             const matchesModel =
-                selectedModel === "" ||
-                car.model === selectedModel;
-
-            // ================= PRICE =================
+                !selectedModel || car.model === selectedModel;
 
             let matchesPrice = true;
 
-            switch (selectedPriceRange) {
-                case "under-1m":
-                    matchesPrice =
-                        car.price < 1_000_000;
-                    break;
-
-                case "1m-3m":
-                    matchesPrice =
-                        car.price >= 1_000_000 &&
-                        car.price <= 3_000_000;
-                    break;
-
-                case "3m-5m":
-                    matchesPrice =
-                        car.price > 3_000_000 &&
-                        car.price <= 5_000_000;
-                    break;
-
-                case "5m-10m":
-                    matchesPrice =
-                        car.price > 5_000_000 &&
-                        car.price <= 10_000_000;
-                    break;
-
-                case "above-10m":
-                    matchesPrice =
-                        car.price > 10_000_000;
-                    break;
-
-                default:
-                    matchesPrice = true;
+            if (selectedPriceRange === "under-1m") {
+                matchesPrice = car.price < 1_000_000;
+            } else if (selectedPriceRange === "1m-3m") {
+                matchesPrice =
+                    car.price >= 1_000_000 && car.price < 3_000_000;
+            } else if (selectedPriceRange === "3m-5m") {
+                matchesPrice =
+                    car.price >= 3_000_000 && car.price < 5_000_000;
+            } else if (selectedPriceRange === "5m-10m") {
+                matchesPrice =
+                    car.price >= 5_000_000 && car.price <= 10_000_000;
+            } else if (selectedPriceRange === "above-10m") {
+                matchesPrice = car.price > 10_000_000;
             }
 
-            return (
-                matchesSearch &&
-                matchesBrand &&
-                matchesModel &&
-                matchesPrice
-            );
+            return matchesSearch && matchesBrand && matchesModel && matchesPrice;
         });
-    }, [
-        cars,
-        search,
-        selectedBrand,
-        selectedModel,
-        selectedPriceRange,
-    ]);
+    }, [cars, search, selectedBrand, selectedModel, selectedPriceRange]);
+
+    const brands = useMemo(
+        () => [...new Set(cars.map((car) => car.brand).filter(Boolean))],
+        [cars]
+    );
+
+    const models = useMemo(
+        () =>
+            [
+                ...new Set(
+                    cars
+                        .filter(
+                            (car) =>
+                                !selectedBrand || car.brand === selectedBrand
+                        )
+                        .map((car) => car.model)
+                        .filter((model): model is string => Boolean(model))
+                ),
+            ],
+        [cars, selectedBrand]
+    );
 
     // ================= LIVE SEARCH RESULTS =================
 
@@ -294,6 +323,8 @@ export default function Vehicles() {
         setSelectedBrand("");
         setSelectedModel("");
         setSelectedPriceRange("");
+
+        setCurrentPage(1);
 
         setSearchParams({}, {
             replace: true,
@@ -488,11 +519,9 @@ export default function Vehicles() {
                         <div className="mt-5 flex justify-between items-center">
 
                             <p className="text-sm text-gray-500">
-                                {filteredCars.length}{" "}
-                                {filteredCars.length === 1
-                                    ? "Vehicle"
-                                    : "Vehicles"}{" "}
-                                Found
+                            {filteredCars.length}{" "}
+                            {filteredCars.length === 1 ? "Vehicle" : "Vehicles"}{" "}
+                            Found
                             </p>
 
                             <button
@@ -704,6 +733,92 @@ export default function Vehicles() {
                 </button>
 
             </div>
+
+            {/* ================= PAGINATION ================= */}
+
+            {!loading && pagination.totalPages > 1 && (
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-12">
+                    <button
+                        type="button"
+                        disabled={currentPage <= 1}
+                        onClick={() =>
+                            updateURL(
+                                search,
+                                selectedBrand,
+                                selectedModel,
+                                selectedPriceRange,
+                                currentPage - 1
+                            )
+                        }
+                        className="px-4 py-2 rounded-lg border disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
+                    >
+                        Previous
+                    </button>
+
+                    {Array.from(
+                        { length: pagination.totalPages },
+                        (_, index) => index + 1
+                    )
+                        .filter(
+                            (page) =>
+                                page === 1 ||
+                                page === pagination.totalPages ||
+                                Math.abs(page - currentPage) <= 1
+                        )
+                        .map((page, index, pages) => (
+                            <span
+                                key={page}
+                                className="contents"
+                            >
+                                {index > 0 &&
+                                    page - pages[index - 1] > 1 && (
+                                        <span className="px-1 text-gray-400">
+                                            ...
+                                        </span>
+                                    )}
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        updateURL(
+                                            search,
+                                            selectedBrand,
+                                            selectedModel,
+                                            selectedPriceRange,
+                                            page
+                                        )
+                                    }
+                                    aria-current={
+                                        page === currentPage ? "page" : undefined
+                                    }
+                                    className={`min-w-10 px-3 py-2 rounded-lg border ${page === currentPage
+                                            ? "bg-green-600 text-white border-green-600"
+                                            : "hover:bg-gray-100"
+                                        }`}
+                                >
+                                    {page}
+                                </button>
+                            </span>
+                        ))}
+
+                    <button
+                        type="button"
+                        disabled={currentPage >= pagination.totalPages}
+                        onClick={() =>
+                            updateURL(
+                                search,
+                                selectedBrand,
+                                selectedModel,
+                                selectedPriceRange,
+                                currentPage + 1
+                            )
+                        }
+                        className="px-4 py-2 rounded-lg border disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
 
         </section>
     );

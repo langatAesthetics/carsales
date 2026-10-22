@@ -7,6 +7,7 @@ import {
 import {
   createCar,
   getCars,
+  getPaginatedCars,
   getSingleCar,
   updateCar,
   deleteCar,
@@ -36,7 +37,7 @@ export const createCarController = async (
   }
 };
 
-/* ================= GET ALL ================= */
+/* ================= GET ALL / PAGINATED ================= */
 
 export const getCarsController = async (
   req: Request,
@@ -44,9 +45,58 @@ export const getCarsController = async (
   next: NextFunction
 ) => {
   try {
-    const cars = await getCars();
+    const isPaginated =
+      req.query.page !== undefined ||
+      req.query.limit !== undefined;
 
-    res.status(200).json(cars);
+    // Preserve the existing array response for older callers.
+    if (!isPaginated) {
+      const cars = await getCars();
+      res.status(200).json(cars);
+      return;
+    }
+
+    const parsePositiveInteger = (
+      value: unknown,
+      fallback: number
+    ): number => {
+      if (
+        typeof value !== "string" ||
+        !/^\d+$/.test(value)
+      ) {
+        return fallback;
+      }
+
+      const parsed = Number(value);
+
+      return Number.isSafeInteger(parsed) && parsed > 0
+        ? parsed
+        : fallback;
+    };
+
+    const page = parsePositiveInteger(req.query.page, 1);
+
+    // Limit the maximum page size to avoid excessive queries.
+    const requestedLimit = parsePositiveInteger(
+      req.query.limit,
+      12
+    );
+
+    const limit = Math.min(requestedLimit, 48);
+
+    const getQueryString = (value: unknown): string =>
+      typeof value === "string" ? value.trim() : "";
+
+    const result = await getPaginatedCars({
+      page,
+      limit,
+      search: getQueryString(req.query.search),
+      brand: getQueryString(req.query.brand),
+      model: getQueryString(req.query.model),
+      price: getQueryString(req.query.price),
+    });
+
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
